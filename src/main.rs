@@ -23,6 +23,7 @@ struct Io {
     writer: BufWriter<StdoutLock<'static>>,
 }
 
+#[allow(dead_code)]
 impl Io {
     fn new() -> Self {
         Self {
