@@ -2,6 +2,7 @@ use std::{
     fmt::Debug,
     io::{self, BufWriter, Lines, StdinLock, StdoutLock, Write},
     str::FromStr,
+    cmp::{min, max},
 };
 
 #[macro_export]
@@ -20,41 +21,34 @@ macro_rules! put {
 
 fn main() {
     let mut io = Io::new();
+    let n: usize = io.read();
+    let probs: Vec<usize> = io.collect(n);
 
-    let t: usize = io.read();
+    let result = solve(n, &probs);
+    putln!(io, "{}", result);
+}
+fn solve(n: usize, probs: &[usize]) -> usize {
+    let total_sum: usize = probs.iter().sum();
+    let mut min_difference = usize::MAX;
 
-    for _ in 0..t {
-        let n: usize = io.read();
-        let mut flights = Vec::new();
+    let mut sum1 = 0;
+    for i in 1..n-1 {
+        sum1 += probs[i-1];
 
-        for _ in 0..n {
-            let a: u64 = io.read();
-            let d: u64 = io.read();
-            flights.push((a, d));
+        let mut sum2 = 0;
+        for j in (1..=n-i).rev() {
+            sum2 += probs[n-j];
+
+            let sum3 = total_sum - sum1 - sum2;
+
+            let max_sum = max(max(sum1, sum2), sum3);
+            let min_sum = min(min(sum1, sum2), sum3);
+
+            min_difference = min(min_difference, max_sum - min_sum);
         }
-
-        let mut events = Vec::new();
-        for (ai, di) in flights {
-            events.push((ai, true));  // true for arrival
-            events.push((di, false)); // false for departure
-        }
-        // Sort events, with departures before arrivals if times are equal
-        events.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-
-        let mut max_gates = 0;
-        let mut current_gates = 0;
-
-        for (_, is_arrival) in events {
-            if is_arrival {
-                current_gates += 1;
-                max_gates = max_gates.max(current_gates);
-            } else {
-                current_gates -= 1;
-            }
-        }
-
-        putln!(io, "{}", max_gates);
     }
+
+    min_difference
 }
 
 struct Io {
