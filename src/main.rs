@@ -68,8 +68,8 @@ impl Io {
 
 #[macro_export]
 macro_rules! putln {
-    ($io:expr, $($args:tt)*) => {
-        writeln!($io.writer, $($args)*).expect("failed to write output")
+    ($io:expr $(, $($args:tt)*)?) => {
+        writeln!($io.writer $(, $($args)*)?).expect("failed to write output")
     };
 }
 
