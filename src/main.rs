@@ -4,15 +4,56 @@ use std::{
     str::FromStr,
 };
 
+#[macro_export]
+macro_rules! putln {
+    ($io:expr $(, $($args:tt)*)?) => {
+        writeln!($io.writer $(, $($args)*)?).expect("failed to write output")
+    };
+}
+
+#[macro_export]
+macro_rules! put {
+    ($io:expr, $($args:tt)*) => {
+        write!($io.writer, $($args)*).expect("failed to write output")
+    };
+}
+
 fn main() {
     let mut io = Io::new();
 
-    // Example solution, adapt to your needs
-    let n: usize = io.read();
-    for _ in 0..n {
-        let a: u64 = io.read();
-        let b: u64 = io.read();
-        putln!(io, "{}", a + b);
+    let t: usize = io.read();
+
+    for _ in 0..t {
+        let n: usize = io.read();
+        let mut flights = Vec::new();
+
+        for _ in 0..n {
+            let a: u64 = io.read();
+            let d: u64 = io.read();
+            flights.push((a, d));
+        }
+
+        let mut events = Vec::new();
+        for (ai, di) in flights {
+            events.push((ai, true));  // true for arrival
+            events.push((di, false)); // false for departure
+        }
+        // Sort events, with departures before arrivals if times are equal
+        events.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+
+        let mut max_gates = 0;
+        let mut current_gates = 0;
+
+        for (_, is_arrival) in events {
+            if is_arrival {
+                current_gates += 1;
+                max_gates = max_gates.max(current_gates);
+            } else {
+                current_gates -= 1;
+            }
+        }
+
+        putln!(io, "{}", max_gates);
     }
 }
 
@@ -67,16 +108,4 @@ impl Io {
     }
 }
 
-#[macro_export]
-macro_rules! putln {
-    ($io:expr $(, $($args:tt)*)?) => {
-        writeln!($io.writer $(, $($args)*)?).expect("failed to write output")
-    };
-}
 
-#[macro_export]
-macro_rules! put {
-    ($io:expr, $($args:tt)*) => {
-        write!($io.writer, $($args)*).expect("failed to write output")
-    };
-}
