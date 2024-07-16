@@ -2,7 +2,6 @@ use std::{
     fmt::Debug,
     io::{self, BufWriter, Lines, StdinLock, StdoutLock, Write},
     str::FromStr,
-    cmp::{min, max},
 };
 
 #[macro_export]
@@ -22,33 +21,30 @@ macro_rules! put {
 fn main() {
     let mut io = Io::new();
     let n: usize = io.read();
-    let probs: Vec<usize> = io.collect(n);
+    let m: usize = io.read();
 
-    let result = solve(n, &probs);
-    putln!(io, "{}", result);
-}
-fn solve(n: usize, probs: &[usize]) -> usize {
-    let total_sum: usize = probs.iter().sum();
-    let mut min_difference = usize::MAX;
+    let mut graph = vec![Vec::new(); n];
 
-    let mut sum1 = 0;
-    for i in 1..n-1 {
-        sum1 += probs[i-1];
-
-        let mut sum2 = 0;
-        for j in (1..=n-i).rev() {
-            sum2 += probs[n-j];
-
-            let sum3 = total_sum - sum1 - sum2;
-
-            let max_sum = max(max(sum1, sum2), sum3);
-            let min_sum = min(min(sum1, sum2), sum3);
-
-            min_difference = min(min_difference, max_sum - min_sum);
-        }
+    for _ in 0..m {
+        let a: usize = io.read();
+        let b: usize = io.read();
+        graph[a].push(b);
+        graph[b].push(a);
     }
 
-    min_difference
+    let mut visited = vec![false; n];
+    dfs(&graph, 0, &mut visited);
+
+    let result = if visited.iter().all(|&x| x) { "YES" } else { "NO" };
+    putln!(io, "{}", result);
+}
+fn dfs(graph: &Vec<Vec<usize>>, node: usize, visited: &mut Vec<bool>) {
+    visited[node] = true;
+    for &neighbor in &graph[node] {
+        if !visited[neighbor] {
+            dfs(graph, neighbor, visited);
+        }
+    }
 }
 
 struct Io {
