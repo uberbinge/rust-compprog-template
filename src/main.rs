@@ -3,6 +3,7 @@ use std::{
     io::{self, BufWriter, Lines, StdinLock, StdoutLock, Write},
     str::FromStr,
 };
+use std::collections::VecDeque;
 
 #[macro_export]
 macro_rules! putln {
@@ -18,35 +19,43 @@ macro_rules! put {
     };
 }
 
+
 fn main() {
     let mut io = Io::new();
     let n: usize = io.read();
     let m: usize = io.read();
 
-    let mut graph = vec![Vec::new(); n];
+    let mut graph = vec![Vec::new(); n + 1];
 
     for _ in 0..m {
         let a: usize = io.read();
         let b: usize = io.read();
         graph[a].push(b);
-        graph[b].push(a);
     }
 
-    let mut visited = vec![false; n];
-    dfs(&graph, 0, &mut visited);
+    let mut visited = vec![false; n + 1];
+    let mut stack = Vec::new();
 
-    let result = if visited.iter().all(|&x| x) { "YES" } else { "NO" };
-    putln!(io, "{}", result);
+    for i in 1..=n {
+        if !visited[i] {
+            dfs(i, &mut visited, &mut stack, &graph);
+        }
+    }
+
+    while let Some(topic) = stack.pop() {
+        print!("{} ", topic);
+    }
 }
-fn dfs(graph: &Vec<Vec<usize>>, node: usize, visited: &mut Vec<bool>) {
+
+fn dfs(node: usize, visited: &mut Vec<bool>, stack: &mut Vec<usize>, graph: &Vec<Vec<usize>>) {
     visited[node] = true;
     for &neighbor in &graph[node] {
         if !visited[neighbor] {
-            dfs(graph, neighbor, visited);
+            dfs(neighbor, visited, stack, graph);
         }
     }
+    stack.push(node);
 }
-
 struct Io {
     line: String,
     offset: usize,
