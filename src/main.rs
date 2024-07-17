@@ -23,39 +23,34 @@ macro_rules! put {
 fn main() {
     let mut io = Io::new();
     let n: usize = io.read();
-    let m: usize = io.read();
+    let coins: Vec<usize> = io.collect(n);
 
-    let mut graph = vec![Vec::new(); n + 1];
-
-    for _ in 0..m {
-        let a: usize = io.read();
-        let b: usize = io.read();
-        graph[a].push(b);
-    }
-
-    let mut visited = vec![false; n + 1];
-    let mut stack = Vec::new();
-
-    for i in 1..=n {
-        if !visited[i] {
-            dfs(i, &mut visited, &mut stack, &graph);
-        }
-    }
-
-    while let Some(topic) = stack.pop() {
-        print!("{} ", topic);
-    }
+    let max = max(coins);
+    putln!(io, "{}", max);
+    // for coin in 0..coins.len() {
+    //     putln!(io, "{}", coins[coin]);
+    // }
 }
 
-fn dfs(node: usize, visited: &mut Vec<bool>, stack: &mut Vec<usize>, graph: &Vec<Vec<usize>>) {
-    visited[node] = true;
-    for &neighbor in &graph[node] {
-        if !visited[neighbor] {
-            dfs(neighbor, visited, stack, graph);
-        }
+fn max(coins: Vec<usize>) -> usize {
+    if coins.is_empty() {
+        return 0;
     }
-    stack.push(node);
+    if coins.len() == 1 {
+        return coins[0];
+    }
+
+    let mut dp = vec![0; coins.len()];
+    dp[0] = coins[0];
+    dp[1] = coins[1].max(coins[0]);
+
+    for i in 2..coins.len() {
+        dp[i] = dp[i - 1].max(dp[i - 2] + coins[i]);
+    }
+
+    *dp.last().unwrap()
 }
+
 struct Io {
     line: String,
     offset: usize,
