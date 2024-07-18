@@ -19,38 +19,31 @@ macro_rules! put {
     };
 }
 
-
 fn main() {
     let mut io = Io::new();
     let n: usize = io.read();
-    let coins: Vec<usize> = io.collect(n);
+    let m: usize = io.read();
+    let mut prices = vec![(0, 0); m];
+    for i in 0..m {
+        prices[i] = (io.read(), io.read());
+    }
+    prices.sort();
 
-    let max = max(coins);
-    putln!(io, "{}", max);
-    // for coin in 0..coins.len() {
-    //     putln!(io, "{}", coins[coin]);
-    // }
+    putln!(io, "{}", max(n, &prices));
 }
 
-fn max(coins: Vec<usize>) -> usize {
-    if coins.is_empty() {
-        return 0;
+fn max(n: usize, prices: &[(usize, usize)]) -> usize {
+    let mut dp = vec![0; n + 1];
+    for i in 1..=n {
+        for &(length, price) in prices {
+            if length > i {
+                break;
+            }
+            dp[i] = dp[i].max(dp[i - length] + price);
+        }
     }
-    if coins.len() == 1 {
-        return coins[0];
-    }
-
-    let mut dp = vec![0; coins.len()];
-    dp[0] = coins[0];
-    dp[1] = coins[1].max(coins[0]);
-
-    for i in 2..coins.len() {
-        dp[i] = dp[i - 1].max(dp[i - 2] + coins[i]);
-    }
-
-    *dp.last().unwrap()
+    dp[n]
 }
-
 struct Io {
     line: String,
     offset: usize,
