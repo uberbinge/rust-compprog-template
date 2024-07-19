@@ -4,7 +4,7 @@ use std::{
     io::{self, BufWriter, Lines, StdinLock, StdoutLock, Write},
     str::FromStr,
 };
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::VecDeque;
 
 #[macro_export]
 macro_rules! putln {
@@ -22,34 +22,46 @@ macro_rules! put {
 
 fn main() {
     let mut io = Io::new();
-    let t: usize = io.read();
 
-    for _ in 0..t {
-        let n: usize = io.read();
-        let k: usize = io.read();
-        let tour: Vec<usize> = io.collect(n);
+    // Read input
+    let n: usize = io.read();
+    let m: usize = io.read();
+    let q: usize = io.read();
 
-        let mut first_occurrence: HashMap<usize, usize> = HashMap::new();
-        let mut last_occurrence: HashMap<usize, usize> = HashMap::new();
-        for (index, &house) in tour.iter().enumerate() {
-            first_occurrence.entry(house).or_insert(index);
-            last_occurrence.insert(house, index);
-        }
+    let mut heights: Vec<i64> = io.collect(n);
 
-        for _ in 0..k {
-            let pickup: usize = io.read();
-            let delivery: usize = io.read();
+    // Create difference array
+    let mut diff = vec![0; n + 1];
+    for i in 0..n {
+        diff[i] += heights[i];
+        diff[i + 1] -= heights[i];
+    }
 
-            if let (Some(&pickup_index), Some(&delivery_index)) = (first_occurrence.get(&pickup), last_occurrence.get(&delivery)) {
-                if pickup_index <= delivery_index {
-                    putln!(io, "sameday");
-                } else {
-                    putln!(io, "dhlspeed");
-                }
-            } else {
-                putln!(io, "dhlspeed");
-            }
-        }
+    // Process watering operations
+    for _ in 0..m {
+        let l: usize = io.read();
+        let r: usize = io.read();
+        let d: i64 = io.read();
+
+        diff[l - 1] += d;
+        diff[r] -= d;
+    }
+
+    // Calculate prefix sum
+    let mut prefix_sum = vec![0; n + 1];
+    let mut current_sum = 0;
+    for i in 0..n {
+        current_sum += diff[i];
+        prefix_sum[i + 1] = current_sum;
+    }
+
+    // Process queries
+    for _ in 0..q {
+        let l: usize = io.read();
+        let r: usize = io.read();
+
+        let total_height = prefix_sum[r] - prefix_sum[l - 1];
+        putln!(io, "{}", total_height);
     }
 }
 struct Io {
@@ -60,7 +72,7 @@ struct Io {
 }
 
 #[allow(dead_code)]
-impl Io {
+impl crate::Io {
     fn new() -> Self {
         Self {
             line: String::new(),
